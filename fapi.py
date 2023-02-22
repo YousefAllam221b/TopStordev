@@ -50,6 +50,7 @@ allinfo = 0
 @app.route('/api/v1/users/uploadUsers', methods=['GET','POST'])
 def uploadUsers():
     uploaded_file = request.files['file']
+    #return uploaded_file.filename
     if uploaded_file.filename != '':
         uploaded_file.save(uploaded_file.filename)
     return 'file uploaded successfully'
