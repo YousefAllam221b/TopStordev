@@ -47,6 +47,14 @@ for log in logcatalog:
  logdict[msgcode] = log.replace(msgcode+':','').split(' ')
 allinfo = 0
 
+@app.route('/api/v1/users/uploadUsers', methods=['GET','POST'])
+def uploadUsers():
+    uploaded_file = request.files['file']
+    if uploaded_file.filename != '':
+        uploaded_file.save(uploaded_file.filename)
+    return 'file uploaded successfully'
+
+
 def getalltime():
  global allinfo,alldsks, getalltimestamp, leaderip
  if (getalltimestamp+30) < timestamp():
