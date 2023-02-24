@@ -51,7 +51,7 @@ allinfo = 0
 def uploadUsers():
     uploaded_file = request.files['file']
     if uploaded_file.filename != '':
-        uploaded_file.save(os.path.join('/TopStor', uploaded_file.filename))
+        uploaded_file.save(os.path.join('/TopStor/TopStordata', uploaded_file.filename))
     return 'file uploaded successfully'
 
 
