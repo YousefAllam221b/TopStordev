@@ -58,6 +58,58 @@ def getpools():
         pooldict[pool[0].split('/')[1]] = {'id': pid, 'owner': pool[1] }
     return poolinfo
 
+def poolsinfo():
+    allpools = getpools()
+    allpools.append({'id':len(allpools), 'text':'-------'})
+    return {'results':allpools}
+
+def api_users_userslist():
+    global allgroups, allusers, leaderip
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersinfo', '--prefix']
+    userlst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
+    allgroups = getgroups()
+    userdict = dict()
+    allusers = []
+    for group in allgroups:
+        groupid = group[1]
+        grpusers = group[2].split(',')
+        for grpuser in grpusers:
+            if grpuser not in userdict:
+                userdict[grpuser] = []
+            userdict[grpuser].append(str(groupid))
+    usersnohome = []
+    nohomeid = 0
+    uid = 0
+    for user in userlst:
+        username = user['name'].replace('usersinfo/','')
+        usersize = user['prop'].split('/')[3]
+        userpool = user['prop'].split('/')[1]
+        priv = '/'.join(user['prop'].split('/')[4:])
+        if username not in userdict:
+            groups = ['NoGroup']
+        else:
+            groups = userdict[username]
+        allusers.append({"name":username, 'id':uid, "pool":userpool, "size":usersize, "groups":groups, 'priv':priv})
+        uid += 1
+        if 'NoHome' in userpool:
+            usersnohome.append({ 'id':nohomeid, 'text': username })
+            nohomeid += 1 
+    alldict = dict()
+    alldict['allusers'] = allusers
+    alldict['allgroups'] = allgroups
+    alldict['usersnohome'] = usersnohome
+    return alldict
+
+def api_groups_userlist():
+ global allusers
+ usr = []
+ api_users_userslist()
+ for user in allusers:
+  usr.append({'id':user['id'],'text':user['name']})
+ return {'results':usr}
+
+
+
 def checker(user, usersNames, poolNames, groupNames):
     flag = False
     if (user['name'] in usersNames or  pd.isnull(user['name']) or user['name'] == ''):
@@ -73,11 +125,9 @@ def checker(user, usersNames, poolNames, groupNames):
     # Checks if the user selected a group.
     if (not (pd.isnull(user['groups']) or user['groups'] == '')):
         # Checks that each group selected is valid.
-        print(not pd.isnull(user['groups']))
         for group in user['groups'].split(','): 
             if (not (group in groupNames)):
                 flag = True
-        print('nonono')
         
     # Checks if the user selected a HomeAddress.
     if (not(pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
@@ -94,9 +144,9 @@ def checker(user, usersNames, poolNames, groupNames):
 def excelParser():
     df = pd.read_excel('Sample.xlsx', dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    usersNames = getusers()
-    groupNames = getgroups()
-    poolNames = getpools()
+    usersNames = api_users_userslist()
+    groupNames = api_groups_userlist()
+    poolNames = poolsinfo()
     goodUsers = []
     badUsers = []
     for index, user in df.iterrows():
