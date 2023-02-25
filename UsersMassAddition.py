@@ -78,14 +78,13 @@ def checker(user, usersNames, poolNames, groupNames):
                 flag = True
         
     # Checks if the user selected a HomeAddress.
-    if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == ''))
+    if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
         # Checks if the HomeAddress is in the correct form.
         if (user['HomeAddress'].split('.').length == 4):
             # Checks that each number is valid.
-            user['HomeAddress'].split('.').forEach(number => {
-                if (parseInt(number) > 255 or parseInt(number) < 0)
-                flag = True
-            })
+            for number in user['HomeAddress'].split('.'):
+                if (int(number) > 255 or int(number) < 0):
+                    flag = True
         else:
             flag = True
     return flag
