@@ -1,5 +1,6 @@
 import subprocess
 
+# Replacement for etcdgetjson
 def cleaner(result):
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
     mylist=zip(mylist[0::2],mylist[1::2])
@@ -13,6 +14,14 @@ def cleaner(result):
         hostid=hostid+1
         hosts.append(hostsdic)
     return hosts
+
+def poolsCleaner(result):
+    z=[]
+    mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
+    zipped=zip(mylist[0::2],mylist[1::2])
+    for x in zipped:
+        z.append(x) 
+    return z
 
 def getusers():
     cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersinfo', '--prefix']
@@ -37,6 +46,19 @@ def getgroups():
         gid += 1
     return groups
 
+def getpools():
+    global pooldict, leaderip
+    cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'pools/', '--prefix']
+    pools= poolsCleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
+    poolinfo = []
+    pid = 0
+    for pool in pools:
+        poolinfo.append({'id':pid, 'owner': pool[1], 'text':pool[0].split('/')[1]})
+        pid += 1
+        pooldict[pool[0].split('/')[1]] = {'id': pid, 'owner': pool[1] }
+    return poolinfo
 print(getusers())
 print('#############')
 print(getgroups())
+print('#############')
+print(getpools())
