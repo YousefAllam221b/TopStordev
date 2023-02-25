@@ -51,10 +51,11 @@ allinfo = 0
 def uploadUsers():
     uploaded_file = request.files['file']
     if uploaded_file.filename != '':
-        isExist = os.path.exists(path)
+        dirPath = '/TopStor/TopStordata'
+        isExist = os.path.exists(dirPath)
         if not isExist:
-          os.makedirs('/TopStor/TopStordata')
-        uploaded_file.save(os.path.join('/TopStor/TopStordata', uploaded_file.filename))
+          os.makedirs('')
+        uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
     return 'file uploaded successfully'
 
 
