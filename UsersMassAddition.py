@@ -101,14 +101,12 @@ def api_users_userslist():
     return alldict
 
 def api_groups_userlist():
- global allusers
- usr = []
- api_users_userslist()
- for user in allusers:
-  usr.append({'id':user['id'],'text':user['name']})
- return {'results':usr}
-
-
+    global allgroups
+    allgroups = getgroups()
+    grp = []
+    for group in allgroups:
+        grp.append({'id':group[1],'text':group[0]})
+    return {'results':grp}
 
 def checker(user, usersNames, poolNames, groupNames):
     flag = False
@@ -144,9 +142,12 @@ def checker(user, usersNames, poolNames, groupNames):
 def excelParser():
     df = pd.read_excel('Sample.xlsx', dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    usersNames = api_users_userslist()
-    groupNames = api_groups_userlist()
-    poolNames = poolsinfo()
+    users = api_users_userslist()['allusers']
+    groups = api_groups_userlist()['results']
+    pools = poolsinfo()['results']
+    usersNames = [user['name'] for user in users]
+    groupNames = [group['text'] for group in groups]
+    poolNames = [pool['text'] for pool in pools]
     goodUsers = []
     badUsers = []
     for index, user in df.iterrows():
