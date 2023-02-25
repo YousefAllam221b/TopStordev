@@ -71,14 +71,16 @@ def checker(user, usersNames, poolNames, groupNames):
             flag = True
     
     # Checks if the user selected a group.
-    if (not (user['groups'] == pd.isnull(user['groups']) or user['groups'] == '')):
+    if (not (pd.isnull(user['groups']) or user['groups'] == '')):
         # Checks that each group selected is valid.
+        print(not pd.isnull(user['groups']))
         for group in user['groups'].split(','): 
             if (not (group in groupNames)):
                 flag = True
+        print('nonono')
         
     # Checks if the user selected a HomeAddress.
-    if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
+    if (not(pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
         # Checks if the HomeAddress is in the correct form.
         if (len(user['HomeAddress'].split('.')) == 4):
             # Checks that each number is valid.
