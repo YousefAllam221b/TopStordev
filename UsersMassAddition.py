@@ -1,5 +1,4 @@
-import subprocess
-
+import subprocess, pandas as pd
 # Replacement for etcdgetjson
 def cleaner(result):
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
@@ -15,6 +14,7 @@ def cleaner(result):
         hosts.append(hostsdic)
     return hosts
 
+# Replacement for etcdget
 def poolsCleaner(result):
     z=[]
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
@@ -24,7 +24,7 @@ def poolsCleaner(result):
     return z
 
 def getusers():
-    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersinfo', '--prefix']
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'usersinfo', '--prefix']
     userlst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     uid = 0
     users = []
@@ -35,7 +35,7 @@ def getusers():
     return users
 
 def getgroups():
-    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersigroup', '--prefix']
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'usersigroup', '--prefix']
     groupslst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     gid = 0
     groups = []
@@ -47,7 +47,7 @@ def getgroups():
     return groups
 
 def getpools():
-    cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'pools/', '--prefix']
+    cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'pools/', '--prefix']
     pools= poolsCleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     poolinfo = []
     pooldict = dict()
@@ -57,8 +57,55 @@ def getpools():
         pid += 1
         pooldict[pool[0].split('/')[1]] = {'id': pid, 'owner': pool[1] }
     return poolinfo
-print(getusers())
-print('#############')
-print(getgroups())
-print('#############')
-print(getpools())
+
+def checker(user, usersNames, poolNames, groupNames):
+    flag = False
+    if (user['name'] in usersNames or  pd.isnull(user['name']) or user['name'] == ''):
+        flag = True
+    if ( pd.isnull(user['Password']) or user['Password'].length < 3):
+        flag = True
+    # Checks if the user selected a Pool.
+    if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '')):
+        # Checks that the Pool is valid.
+        if (not (user['Volpool'] in poolNames)):
+            flag = True
+    
+    # Checks if the user selected a group.
+    if (not (user['groups'] == pd.isnull(user['groups']) or user['groups'] == '')):
+        # Checks that each group selected is valid.
+        for group in user['groups'].split(','): 
+            if (not (group in groupNames)):
+                flag = True
+        
+    # Checks if the user selected a HomeAddress.
+    if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == ''))
+        # Checks if the HomeAddress is in the correct form.
+        if (user['HomeAddress'].split('.').length == 4):
+            # Checks that each number is valid.
+            user['HomeAddress'].split('.').forEach(number => {
+                if (parseInt(number) > 255 or parseInt(number) < 0)
+                flag = True
+            })
+        else:
+            flag = True
+    return flag
+
+def excelParser():
+    df = pd.read_excel('Sample.xlsx', dtype={'Password': object})
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    # usersNames = getusers()
+    usersNames = getusers()
+    groupNames = getgroups()
+    poolNames = getpools()
+    goodUsers = []
+    badUsers = []
+    for index, user in df.iterrows():
+        flag = checker(user, usersNames, poolNames, groupNames)
+        if flag:
+            badUsers.append(user)
+        else:
+            goodUsers.append(user)
+    print(goodUsers)
+    print('############################')
+    print(badUsers)
+excelParser()
