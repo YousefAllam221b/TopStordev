@@ -1,7 +1,5 @@
 import subprocess
 
-cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersigroup', '--prefix']
-result=subprocess.run(cmdline,stdout=subprocess.PIPE)
 def cleaner(result):
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
     mylist=zip(mylist[0::2],mylist[1::2])
@@ -15,4 +13,30 @@ def cleaner(result):
         hostid=hostid+1
         hosts.append(hostsdic)
     return hosts
-print(cleaner(result))
+
+def getusers():
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersinfo', '--prefix']
+    userlst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
+    uid = 0
+    users = []
+    for user in userlst:
+        username = user['name'].replace('usersinfo/','')
+        users.append([username,str(uid)]) 
+        uid += 1
+    return users
+
+def getgroups():
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersigroup', '--prefix']
+    groupslst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
+    gid = 0
+    groups = []
+    for group in groupslst:
+        grpusers = group['prop'].split('/')[2]
+        groupname = group['name'].replace('usersigroup/','')
+        groups.append([groupname,str(gid), grpusers]) 
+        gid += 1
+    return groups
+
+print(getusers())
+print('#############')
+print(getgroups())
