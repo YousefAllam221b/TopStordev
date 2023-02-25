@@ -47,10 +47,10 @@ def getgroups():
     return groups
 
 def getpools():
-    global pooldict, leaderip
     cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'pools/', '--prefix']
     pools= poolsCleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     poolinfo = []
+    pooldict = dict()
     pid = 0
     for pool in pools:
         poolinfo.append({'id':pid, 'owner': pool[1], 'text':pool[0].split('/')[1]})
