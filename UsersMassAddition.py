@@ -156,6 +156,7 @@ def excelParser():
             badUsers.append(user)
         else:
             goodUsers.append(user)
+            usersNames.append(user['name']);
     print(goodUsers)
     print('############################')
     print(badUsers)
