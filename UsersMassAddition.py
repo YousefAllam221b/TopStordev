@@ -62,7 +62,7 @@ def checker(user, usersNames, poolNames, groupNames):
     flag = False
     if (user['name'] in usersNames or  pd.isnull(user['name']) or user['name'] == ''):
         flag = True
-    if ( pd.isnull(user['Password']) or user['Password'].length < 3):
+    if ( pd.isnull(user['Password']) or user['Password'].length() < 3):
         flag = True
     # Checks if the user selected a Pool.
     if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '')):
@@ -80,7 +80,7 @@ def checker(user, usersNames, poolNames, groupNames):
     # Checks if the user selected a HomeAddress.
     if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
         # Checks if the HomeAddress is in the correct form.
-        if (user['HomeAddress'].split('.').length == 4):
+        if (user['HomeAddress'].split('.').length() == 4):
             # Checks that each number is valid.
             for number in user['HomeAddress'].split('.'):
                 if (int(number) > 255 or int(number) < 0):
