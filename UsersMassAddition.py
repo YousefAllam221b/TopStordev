@@ -24,7 +24,7 @@ def poolsCleaner(result):
     return z
 
 def getusers():
-    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'usersinfo', '--prefix']
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersinfo', '--prefix']
     userlst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     uid = 0
     users = []
@@ -35,7 +35,7 @@ def getusers():
     return users
 
 def getgroups():
-    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'usersigroup', '--prefix']
+    cmdline = ['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'usersigroup', '--prefix']
     groupslst = cleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     gid = 0
     groups = []
@@ -47,7 +47,7 @@ def getgroups():
     return groups
 
 def getpools():
-    cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http:#etcd:2379', 'get', 'pools/', '--prefix']
+    cmdline=['docker', 'exec', 'etcdclient', 'etcdctl', '--endpoints=http://etcd:2379', 'get', 'pools/', '--prefix']
     pools= poolsCleaner(subprocess.run(cmdline,stdout=subprocess.PIPE))
     poolinfo = []
     pooldict = dict()
@@ -62,7 +62,7 @@ def checker(user, usersNames, poolNames, groupNames):
     flag = False
     if (user['name'] in usersNames or  pd.isnull(user['name']) or user['name'] == ''):
         flag = True
-    if ( pd.isnull(user['Password']) or user['Password'].length() < 3):
+    if ( pd.isnull(user['Password']) or len(user['Password']) < 3):
         flag = True
     # Checks if the user selected a Pool.
     if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '')):
@@ -80,7 +80,7 @@ def checker(user, usersNames, poolNames, groupNames):
     # Checks if the user selected a HomeAddress.
     if (not(user['HomeAddress'] == pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
         # Checks if the HomeAddress is in the correct form.
-        if (user['HomeAddress'].split('.').length() == 4):
+        if (len(user['HomeAddress'].split('.')) == 4):
             # Checks that each number is valid.
             for number in user['HomeAddress'].split('.'):
                 if (int(number) > 255 or int(number) < 0):
@@ -90,9 +90,8 @@ def checker(user, usersNames, poolNames, groupNames):
     return flag
 
 def excelParser():
-    df = pd.read_excel('Sample.xlsx', dtype={'Password': object})
+    df = pd.read_excel('Sample.xlsx', dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
-    # usersNames = getusers()
     usersNames = getusers()
     groupNames = getgroups()
     poolNames = getpools()
