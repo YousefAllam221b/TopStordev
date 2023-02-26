@@ -54,7 +54,7 @@ def uploadUsers():
         dirPath = '/TopStor/TopStordata'
         isExist = os.path.exists(dirPath)
         if not isExist:
-          os.makedirs('')
+          os.makedirs(dirPath)
         uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
     return 'file uploaded successfully'
 
