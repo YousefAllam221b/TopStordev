@@ -115,7 +115,7 @@ def checker(user, usersNames, poolNames, groupNames):
     if ( pd.isnull(user['Password']) or len(user['Password']) < 3):
         flag = True
     # Checks if the user selected a Pool.
-    if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '')):
+    if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '' or user['Volpool'] == len(user['Volpool']) * '-')):
         # Checks that the Pool is valid.
         if (not (user['Volpool'] in poolNames)):
             flag = True
@@ -128,7 +128,7 @@ def checker(user, usersNames, poolNames, groupNames):
                 flag = True
         
     # Checks if the user selected a HomeAddress.
-    if (not(pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '')):
+    if (not(pd.isnull(user['HomeAddress']) or user['HomeAddress'] == '' or user['HomeAddress'].lower()  == 'NoAddress'.lower() or user['HomeAddress'].lower()  == 'No Address'.lower())):
         # Checks if the HomeAddress is in the correct form.
         if (len(user['HomeAddress'].split('.')) == 4):
             # Checks that each number is valid.
@@ -149,7 +149,10 @@ def excelParser():
     pools = poolsinfo()['results']
     usersNames = [user['name'] for user in users]
     groupNames = [group['text'] for group in groups]
-    poolNames = [pool['text'] for pool in pools]
+    poolNames = [pool['text'].lower() for pool in pools]
+    poolNames.append('nohome')
+    poolNames.append('no home')
+    
     goodUsers = []
     badUsers = []
     for index, user in df.iterrows():
