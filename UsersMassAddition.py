@@ -133,7 +133,9 @@ def checker(user, usersNames, poolNames, groupNames):
         if (len(user['HomeAddress'].split('.')) == 4):
             # Checks that each number is valid.
             for number in user['HomeAddress'].split('.'):
-                if (int(number) > 255 or int(number) < 0):
+                if (not number.isdigit()):
+                    flag = True
+                elif (int(number) > 255 or int(number) < 0):
                     flag = True
         else:
             flag = True
