@@ -115,10 +115,11 @@ def checker(user, usersNames, poolNames, groupNames):
     if ( pd.isnull(user['Password']) or len(user['Password']) < 3):
         flag = True
     # Checks if the user selected a Pool.
-    if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '' or user['Volpool'] == len(user['Volpool']) * '-')):
-        # Checks that the Pool is valid.
-        if (not (user['Volpool'] in poolNames)):
-            flag = True
+    if (not (user['Volpool'] == pd.isnull(user['Volpool']) or user['Volpool'] == '')):
+        if (user['Volpool'] != len(user['Volpool']) * '-'):
+            # Checks that the Pool is valid.
+            if (not (user['Volpool'] in poolNames)):
+                flag = True
     
     # Checks if the user selected a group.
     if (not (pd.isnull(user['groups']) or user['groups'] == '')):
