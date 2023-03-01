@@ -125,7 +125,7 @@ def checker(user, usersNames, poolNames, groupNames):
     if (not (pd.isnull(user['groups']) or user['groups'] == '')):
         # Checks that each group selected is valid.
         for group in user['groups'].split(','): 
-            if (not (group in groupNames)):
+            if (not (group in groupNames and group != '')):
                 flag = True
         
     # Checks if the user selected a HomeAddress.
@@ -153,6 +153,8 @@ def excelParser():
     poolNames = [pool['text'].lower() for pool in pools]
     poolNames.append('nohome')
     poolNames.append('no home')
+    poolNames.append('nopool')
+    poolNames.append('no pool')
     
     goodUsers = []
     badUsers = []
