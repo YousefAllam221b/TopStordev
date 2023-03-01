@@ -47,16 +47,6 @@ for log in logcatalog:
  logdict[msgcode] = log.replace(msgcode+':','').split(' ')
 allinfo = 0
 
-@app.route('/api/v1/users/uploadUsers', methods=['GET','POST'])
-def uploadUsers():
-    uploaded_file = request.files['file']
-    if uploaded_file.filename != '':
-        dirPath = '/TopStor/TopStordata'
-        isExist = os.path.exists(dirPath)
-        if not isExist:
-          os.makedirs(dirPath)
-        uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
-    return 'file uploaded successfully'
 
 
 def getalltime():
@@ -83,6 +73,23 @@ def login_required(f):
    logmsg.sendlog('Lognno0','warning','system',data['token'])
   return f({'response':'baduser'})
  return decorated_function
+
+@app.route('/api/v1/users/uploadUsers', methods=['GET','POST'])
+@login_required
+def uploadUsers(data):
+    global allgroups, leaderip
+    if 'baduser' in data['response']:
+      return {'response': 'baduser'}
+    uploaded_file = request.files['file']
+    if uploaded_file.filename != '':
+        dirPath = '/TopStor/TopStordata'
+        isExist = os.path.exists(dirPath)
+        if not isExist:
+          os.makedirs(dirPath)
+        uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
+    cmndstring = 'python /TopStor/UsersMassAddition.py '+leaderip + ' ' + data['user']
+    postchange(cmndstring)
+    return 'file uploaded successfully'
 
 
 def postchange(cmndstring,host='myhost'):

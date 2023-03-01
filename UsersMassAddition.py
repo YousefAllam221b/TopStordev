@@ -1,4 +1,4 @@
-import subprocess, pandas as pd
+import subprocess, pandas as pd, sys
 # Replacement for etcdgetjson
 def cleaner(result):
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
@@ -169,3 +169,6 @@ def excelParser():
     print('############################')
     print(badUsers)
 excelParser()
+
+if __name__=='__main__':
+ print(*sys.argv[1:])
