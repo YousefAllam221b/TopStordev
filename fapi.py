@@ -87,8 +87,8 @@ def uploadUsers(data):
         if not isExist:
           os.makedirs(dirPath)
         uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
-    cmndstring = 'python /TopStor/UsersMassAddition.py '+leaderip + ' ' + data['user']
-    postchange(cmndstring)
+    cmdline = ['python', '/TopStor/UsersMassAddition.py', 'leaderip', data['user']]
+    subprocess.run(cmdline,stdout=subprocess.PIPE)
     return 'file uploaded successfully'
 
 
