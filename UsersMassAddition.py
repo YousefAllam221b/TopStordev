@@ -120,7 +120,7 @@ def checker(user, usersNames, poolNames, groupNames):
             # Checks that the Pool is valid.
             if (not (user['Volpool'].lower() in poolNames)):
                 flag = True
-    
+
     # Checks if the user selected a group.
     if (not (pd.isnull(user['groups']) or user['groups'] == '')):
         # Checks that each group selected is valid.
@@ -143,8 +143,9 @@ def checker(user, usersNames, poolNames, groupNames):
     return flag
 
 def excelParser():
-    df = pd.read_excel('Sample.xlsx', dtype = str)
+    df = pd.read_excel('/TopStor/TopStordata/Sample.xlsx', dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    df = df.fillna('')
     users = api_users_userslist()['allusers']
     groups = api_groups_userlist()['results']
     pools = poolsinfo()['results']
@@ -182,7 +183,7 @@ def addUsers(*argv):
                 group = 'NoGroup'
             else:
                 group = user['groups']
-            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {}G {} {} hoststub {}'.format(argv[1], user['name'], pool, group, user['Volsize'], user['HomeAddress'], user['HomeSubnet'], argv[2])
+            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {}G {} {} hoststub {}'.format(argv[0], user['name'], pool, group, user['Volsize'], user['HomeAddress'], user['HomeSubnet'], argv[1])
             f.write(cmdline)
 
 
