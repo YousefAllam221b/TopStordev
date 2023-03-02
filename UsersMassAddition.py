@@ -165,10 +165,26 @@ def excelParser():
         else:
             goodUsers.append(user)
             usersNames.append(user['name']);
-    print(goodUsers)
-    print('############################')
-    print(badUsers)
-excelParser()
+    return goodUsers
+def addUsers(*argv):
+    users = excelParser()
+    pools = poolsinfo()['results']
+    poolNames = [pool['text'].lower() for pool in pools]
+    with open('hh.txt', 'w') as f:
+        for user in users:
+            pool = ''
+            group = ''
+            if (user['Volpool']  in poolNames):
+                pool = user['Volpool']
+            else:
+                pool = 'NoHome'
+            if (user['groups']):
+                group = 'NoGroup'
+            else:
+                group = user['groups']
+            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {}G {} {} hoststub {}'.format(argv[1], user['name'], pool, group, user['Volsize'], user['HomeAddress'], user['HomeSubnet'], argv[2])
+            f.write(cmdline)
+
 
 if __name__=='__main__':
- print(*sys.argv[1:])
+ addUsers(*sys.argv[1:])
