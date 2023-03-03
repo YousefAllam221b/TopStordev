@@ -1,4 +1,4 @@
-import subprocess, pandas as pd, sys
+import subprocess, pandas as pd, sys, os
 # Replacement for etcdgetjson
 def cleaner(result):
     mylist=str(result.stdout.decode()).replace('\n\n','\n').split('\n')
@@ -142,10 +142,15 @@ def checker(user, usersNames, poolNames, groupNames):
             flag = True
     return flag
 
-def excelParser():
-    df = pd.read_excel('/TopStor/TopStordata/Sample.xlsx', dtype = str)
+def excelParser(filePath):
+    df = pd.read_excel(filePath, dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
     df = df.fillna('')
+    df['name'] = df['name'].str.rstrip()
+    df['Volpool'] = df['Volpool'].str.rstrip()
+    df['HomeAddress'] = df['HomeAddress'].str.rstrip()
+    df['HomeSubnet'] = df['HomeSubnet'].str.rstrip()
+    df['Volsize'] = df['Volsize'].str.rstrip()
     users = api_users_userslist()['allusers']
     groups = api_groups_userlist()['results']
     pools = poolsinfo()['results']
@@ -168,7 +173,7 @@ def excelParser():
             usersNames.append(user['name']);
     return goodUsers
 def addUsers(*argv):
-    users = excelParser()
+    users = excelParser(argv[2])
     pools = poolsinfo()['results']
     groups = api_groups_userlist()['results']
     poolNames = [pool['text'].lower() for pool in pools]
@@ -200,7 +205,7 @@ def addUsers(*argv):
             f.write(cmdline)
             f.write('\n')
             subprocess.run(cmdline.split(' '))
-            
+    os.remove(argv[2])   
 
 
 if __name__=='__main__':
