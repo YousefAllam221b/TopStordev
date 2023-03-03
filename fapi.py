@@ -82,14 +82,17 @@ def uploadUsers(data):
       return {'response': 'baduser'}
     uploaded_file = request.files['file']
     if uploaded_file.filename != '':
-        dirPath = '/TopStor/TopStordata'
-        isExist = os.path.exists(dirPath)
-        if not isExist:
-          os.makedirs(dirPath)
-        uploaded_file.save(os.path.join(dirPath, uploaded_file.filename))
-    cmdline = 'python /TopStor/UsersMassAddition.py '+ leaderip +' '+ data['user']
-    postchange(cmdline)
-    return 'file uploaded successfully'
+      dirPath = '/TopStor/TopStordata'
+      isExist = os.path.exists(dirPath)
+      if not isExist:
+        os.makedirs(dirPath)
+      filePath = os.path.join(dirPath, uploaded_file.filename)
+      uploaded_file.save(filePath)
+      cmdline = 'python /TopStor/UsersMassAddition.py '+ leaderip +' '+ data['user'] + ' ' + filePath
+      postchange(cmdline)
+      return 'File uploaded successfully!'
+    else:
+      return 'Error while uploading file!'
 
 
 def postchange(cmndstring,host='myhost'):
