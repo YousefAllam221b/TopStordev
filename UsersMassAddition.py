@@ -170,21 +170,37 @@ def excelParser():
 def addUsers(*argv):
     users = excelParser()
     pools = poolsinfo()['results']
+    groups = api_groups_userlist()['results']
     poolNames = [pool['text'].lower() for pool in pools]
+    groupNames = [group['text'] for group in groups]
     with open('hh.txt', 'w') as f:
         for user in users:
-            pool = ''
-            group = ''
-            if (user['Volpool']  in poolNames):
+            pool = 'NoHome'
+            groups = []
+            address = 'NoAddress'
+            subnet = '8'
+            size = '1'
+            if (user['Volpool'] in poolNames and len(user['Volpool']) * '-' != user['Volpool'] ):
                 pool = user['Volpool']
+            if (not (user['groups'] == '')):
+                for g in user['groups'].split(','):
+                    if (g in groupNames):
+                        groups.append(g)
+                groups = ','.join(groups)
             else:
-                pool = 'NoHome'
-            if (user['groups']):
-                group = 'NoGroup'
-            else:
-                group = user['groups']
-            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {}G {} {} hoststub {}'.format(argv[0], user['name'], pool, group, user['Volsize'], user['HomeAddress'], user['HomeSubnet'], argv[1])
+                groups = ''
+            if (not (user['HomeAddress'] == '')):
+                if (user['HomeAddress'].lower() != 'No Address'.lower()):
+                    address = user['HomeAddress']
+            if (not (user['HomeSubnet'] == '')):
+                subnet = user['HomeSubnet']
+            if (not (user['Volsize'] == '')):
+                size = user['Volsize']
+            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {} {}G {} {} hoststub {}'.format(argv[0], user['name'], pool, groups, user['Password'],size, address, subnet, argv[1])
             f.write(cmdline)
+            f.write('\n')
+            subprocess.run(cmdline.split(' '))
+            
 
 
 if __name__=='__main__':
