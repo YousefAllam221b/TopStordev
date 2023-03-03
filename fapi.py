@@ -86,7 +86,8 @@ def uploadUsers(data):
       isExist = os.path.exists(dirPath)
       if not isExist:
         os.makedirs(dirPath)
-      filePath = os.path.join(dirPath, uploaded_file.filename)
+      filename =  uploaded_file.filename.replace(' ', '')
+      filePath = os.path.join(dirPath, filename)
       uploaded_file.save(filePath)
       cmdline = 'python /TopStor/UsersMassAddition.py '+ leaderip +' '+ data['user'] + ' ' + filePath
       postchange(cmdline)
