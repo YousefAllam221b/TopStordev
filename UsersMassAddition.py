@@ -108,6 +108,7 @@ def api_groups_userlist():
         grp.append({'id':group[1],'text':group[0]})
     return {'results':grp}
 
+# Checks if the User is valid or not.
 def checker(user, usersNames, poolNames, groupNames):
     flag = False
     if (user['name'] in usersNames or  pd.isnull(user['name']) or user['name'] == ''):
@@ -142,6 +143,7 @@ def checker(user, usersNames, poolNames, groupNames):
             flag = True
     return flag
 
+# Takes in the Excel file path, it parses the file and creates goodusers list
 def excelParser(filePath):
     df = pd.read_excel(filePath, dtype = str)
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
@@ -172,39 +174,38 @@ def excelParser(filePath):
             goodUsers.append(user)
             usersNames.append(user['name']);
     return goodUsers
+
+# Takes in leaderip, user and Excel file. Creates a list of goodusers and addes them using UnixAddUser script.
 def addUsers(*argv):
     users = excelParser(argv[2])
     pools = poolsinfo()['results']
     groups = api_groups_userlist()['results']
     poolNames = [pool['text'].lower() for pool in pools]
     groupNames = [group['text'] for group in groups]
-    with open('hh.txt', 'w') as f:
-        for user in users:
-            pool = 'NoHome'
-            groups = []
-            address = 'NoAddress'
-            subnet = '8'
-            size = '1'
-            if (user['Volpool'] in poolNames and len(user['Volpool']) * '-' != user['Volpool'] ):
-                pool = user['Volpool']
-            if (not (user['groups'] == '')):
-                for g in user['groups'].split(','):
-                    if (g in groupNames):
-                        groups.append(g)
-                groups = ','.join(groups)
-            else:
-                groups = ''
-            if (not (user['HomeAddress'] == '')):
-                if (user['HomeAddress'].lower() != 'No Address'.lower()):
-                    address = user['HomeAddress']
-            if (not (user['HomeSubnet'] == '')):
-                subnet = user['HomeSubnet']
-            if (not (user['Volsize'] == '')):
-                size = user['Volsize']
-            cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {} {}G {} {} hoststub {}'.format(argv[0], user['name'], pool, groups, user['Password'],size, address, subnet, argv[1])
-            f.write(cmdline)
-            f.write('\n')
-            subprocess.run(cmdline.split(' '))
+    for user in users:
+        pool = 'NoHome'
+        groups = []
+        address = 'NoAddress'
+        subnet = '8'
+        size = '1'
+        if (user['Volpool'] in poolNames and len(user['Volpool']) * '-' != user['Volpool'] ):
+            pool = user['Volpool']
+        if (not (user['groups'] == '')):
+            for g in user['groups'].split(','):
+                if (g in groupNames):
+                    groups.append(g)
+            groups = ','.join(groups)
+        else:
+            groups = ''
+        if (not (user['HomeAddress'] == '')):
+            if (user['HomeAddress'].lower() != 'No Address'.lower()):
+                address = user['HomeAddress']
+        if (not (user['HomeSubnet'] == '')):
+            subnet = user['HomeSubnet']
+        if (not (user['Volsize'] == '')):
+            size = user['Volsize']
+        cmdline = '/TopStor/UnixAddUser {} {} {} groups{} {} {}G {} {} hoststub {}'.format(argv[0], user['name'], pool, groups, user['Password'],size, address, subnet, argv[1])
+        subprocess.run(cmdline.split(' '))
     os.remove(argv[2])   
 
 
