@@ -14,6 +14,8 @@ fnupdate () {
 	git add .
 	git commit -m 'fixing'
 	git pull $remote $1
+	git add .
+	git commit -m 'fixing'
 	if [ $? -ne 0 ];
 	then
 		echo something went wrong while pulling from remote $remote, branch: $1 .... consult the devleloper
