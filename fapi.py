@@ -267,7 +267,9 @@ def hostslost():
 def dgsinfo():
  global allinfo 
  getalltime()
- dgsinfo = {'raids':allinfo['raids'], 'pools':allinfo['pools'], 'disks':allinfo['disks']}
+ needsHealing = get('offlinethis/','--prefix')
+ needsHealing = {item[0].split('/')[1]: item[1:][0] for item in needsHealing}
+ dgsinfo = {'raids':allinfo['raids'], 'pools':allinfo['pools'], 'disks':allinfo['disks'], 'needsHealing': needsHealing}
  dgsinfo['newraid'] = newraids(allinfo['disks'])
  return jsonify(dgsinfo)
 
