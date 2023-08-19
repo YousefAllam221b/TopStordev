@@ -1,3 +1,4 @@
+#!/bin/python
 import sys, docker, time, json, subprocess
 from etcdgetlocalpy import etcdget  as get
 from etcdput import etcdput as put
