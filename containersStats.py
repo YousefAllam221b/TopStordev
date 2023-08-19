@@ -2,9 +2,13 @@ import docker, time, json, subprocess
 from etcdgetlocalpy import etcdget  as get
 from etcdput import etcdput as put
 from etcdputlocal import etcdput as putlocal
+
 client = docker.from_env()
 cifsWGsIDs = client.containers.list(all=True, filters={"name":"CIFS-"})
 #cifsWGsNames = [container.name for container in cifsWGsIDs]
+
+cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py leaderip'
+leaderip = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
 
 for WG in cifsWGsIDs:
     container = client.containers.get(WG.id)
@@ -26,23 +30,6 @@ def sizeof_fmt(num, isByteUnits = False, suffix="B"):
             return f"{num:3.1f}{unit}{suffix}"
         num /= conversion
     return f"{num:.1f}Yi{suffix}"
-
-def whoAmI():
-    global mynode, leader, leaderip
-    cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py mynode'
-    mynode = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
-    cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py leader'
-    leader = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
-    cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py leaderip'
-    leaderip = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
-
-whoAmI()
-
-def updateStats(stats):
-    if leader == mynode:
-        put(leaderip, "statsvol/" + stats["volname"], json.dumps(stats))
-    else:
-        putlocal("statsvol/" + stats["volname"], json.dumps(stats))
 
 def dockerLog():
     cpuLog = []
@@ -92,7 +79,7 @@ def dockerLog():
                         memLog.append(mem)
                         networksLog.append(str(sizeof_fmt(rx)) + " / " + str(sizeof_fmt(tx)))
                         containerStats = {"volname": status["name"][1:],"mem":mem,"cpu":cpuPercentRounded, "networkInput": rx, "networkOutput": tx, "diskRead": read, "diskWrite": write}
-                        updateStats(containerStats)
+                        put(leaderip, "statsvol/" + stats["volname"], json.dumps(stats))
                 except Exception as e:
                     break
         except Exception as e:
