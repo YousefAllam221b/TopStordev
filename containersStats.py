@@ -1,14 +1,11 @@
-import docker, time, json, subprocess
+import sys, docker, time, json, subprocess
 from etcdgetlocalpy import etcdget  as get
 from etcdput import etcdput as put
-from etcdputlocal import etcdput as putlocal
 
 client = docker.from_env()
 cifsWGsIDs = client.containers.list(all=True, filters={"name":"CIFS-"})
 #cifsWGsNames = [container.name for container in cifsWGsIDs]
 
-cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py leaderip'
-leaderip = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
 
 for WG in cifsWGsIDs:
     container = client.containers.get(WG.id)
@@ -17,6 +14,7 @@ for WG in cifsWGsIDs:
     #print(status)
     #print(status["name"] + " " + status['cpu_stats'])
 #print(cifsWGsNames)
+
 def sizeof_fmt(num, isByteUnits = False, suffix="B"):
     ibyteUnits = ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi")
     byteUnits = ("", "K", "M", "G", "T", "P", "E", "Z")
@@ -31,20 +29,13 @@ def sizeof_fmt(num, isByteUnits = False, suffix="B"):
         num /= conversion
     return f"{num:.1f}Yi{suffix}"
 
-def dockerLog():
-    cpuLog = []
-    memLog = []
-    networksLog = []
-    nameLog = []
-    startFlag = True
+def dockerLog(leaderip):
     cifsWGsIDs = client.containers.list(all=True, filters={"name":"CIFS-"})
-    while True:
-        try:
+    try:
             containers = cifsWGsIDs
             for container in containers:
                 status = container.stats(decode=None, stream = False)
                 try:
-                    nameLog.append(status["name"][1:])
                     # Calculate the change for the cpu usage of the container in between readings
                     # Taking in to account the amount of cores the CPU has
                     cpuDelta = status["cpu_stats"]["cpu_usage"]["total_usage"] - status["precpu_stats"]["cpu_usage"]["total_usage"]
@@ -72,19 +63,15 @@ def dockerLog():
                         else:
                             write += service["value"]
                             
-                    if startFlag == True and cpuPercent == 0: #Not logging CPU increase during startup of container, before test code executes.
-                        startFlag = False
-                    if startFlag == False:
-                        cpuLog.append(cpuPercentRounded)
-                        memLog.append(mem)
-                        networksLog.append(str(sizeof_fmt(rx)) + " / " + str(sizeof_fmt(tx)))
-                        containerStats = {"volname": status["name"][1:],"mem":mem,"cpu":cpuPercentRounded, "networkInput": rx, "networkOutput": tx, "diskRead": read, "diskWrite": write}
-                        put(leaderip, "statsvol/" + stats["volname"], json.dumps(stats))
+                    containerStats = {"volname": status["name"][1:],"mem":mem,"cpu":cpuPercentRounded, "networkInput": rx, "networkOutput": tx, "diskRead": read, "diskWrite": write}
+                    put(leaderip, "statsvol/" + containerStats["volname"], json.dumps(containerStats))
                 except Exception as e:
                     break
-        except Exception as e:
+    except Exception as e:
             print("Error: "+str(e))
             pass
-        # Write the logging to a file
-        time.sleep(5)
-dockerLog()
+if __name__=='__main__':
+    leaderip = sys.argv[1]
+    #cmdline = 'docker exec etcdclient /TopStor/etcdgetlocal.py leaderip'
+    #leaderip = subprocess.run(cmdline.split(), stdout=subprocess.PIPE).stdout.decode('utf-8').replace('\n', '').replace(' ', '')
+    dockerLog(leaderip)
